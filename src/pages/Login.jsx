@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaEnvelope, FaLock, FaGoogle, FaApple, FaUser } from 'react-icons/fa'
+import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa'
 import { useAuth } from '../contexts/AuthContext'
 
 function Login() {
@@ -156,28 +156,6 @@ function Login() {
             {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
           </button>
         </form>
-
-        <div className="mt-6">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-purple-200"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white/80 text-gray-500 font-medium">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all hover:shadow-lg transform hover:scale-105">
-              <FaGoogle className="text-red-500" size={20} />
-              <span className="text-sm font-semibold">Google</span>
-            </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all hover:shadow-lg transform hover:scale-105">
-              <FaApple className="text-gray-900" size={20} />
-              <span className="text-sm font-semibold">Apple</span>
-            </button>
-          </div>
-        </div>
 
         <div className="mt-8 text-center">
           <button
