@@ -1,41 +1,109 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaEnvelope, FaLock, FaGoogle, FaApple } from 'react-icons/fa'
+import { FaEnvelope, FaLock, FaGoogle, FaApple, FaUser } from 'react-icons/fa'
+import { useAuth } from '../contexts/AuthContext'
 
 function Login() {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const { login, register } = useAuth()
+  const [isLogin, setIsLogin] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleLogin = (e) => {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    displayName: '',
+    confirmPassword: ''
+  })
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: Implement authentication
-    console.log('Login:', email, password)
-    navigate('/')
+    setError('')
+    setLoading(true)
+
+    try {
+      if (isLogin) {
+        await login(formData.email, formData.password)
+        navigate('/')
+      } else {
+        if (formData.password !== formData.confirmPassword) {
+          setError('Passwords do not match')
+          setLoading(false)
+          return
+        }
+        if (formData.password.length < 6) {
+          setError('Password must be at least 6 characters')
+          setLoading(false)
+          return
+        }
+        await register(formData.email, formData.password, formData.displayName)
+        navigate('/')
+      }
+    } catch (err) {
+      setError(err.message || 'Authentication failed')
+      setLoading(false)
+    }
+  }
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
-          Mom Planner
-        </h1>
-        <p className="text-center text-gray-600 mb-8">
-          Organize your family life with ease
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 px-4">
+      <div className="max-w-md w-full bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-purple-100">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+            Mom Planner
+          </h1>
+          <p className="text-gray-600">
+            {isLogin ? 'Welcome back!' : 'Create your account'}
+          </p>
+        </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 border border-red-300 text-red-700 rounded-xl text-sm">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Display Name
+              </label>
+              <div className="relative">
+                <FaUser className="absolute left-4 top-4 text-purple-400" />
+                <input
+                  type="text"
+                  name="displayName"
+                  value={formData.displayName}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-4 py-3.5 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white/50"
+                  placeholder="Sarah Johnson"
+                  required={!isLogin}
+                />
+              </div>
+            </div>
+          )}
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Email
             </label>
             <div className="relative">
-              <FaEnvelope className="absolute left-3 top-3.5 text-gray-400" />
+              <FaEnvelope className="absolute left-4 top-4 text-purple-400" />
               <input
                 type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white/50"
                 placeholder="your@email.com"
                 required
               />
@@ -43,58 +111,86 @@ function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Password
             </label>
             <div className="relative">
-              <FaLock className="absolute left-3 top-3.5 text-gray-400" />
+              <FaLock className="absolute left-4 top-4 text-purple-400" />
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full pl-12 pr-4 py-3.5 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white/50"
                 placeholder="••••••••"
                 required
               />
             </div>
           </div>
 
+          {!isLogin && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <FaLock className="absolute left-4 top-4 text-purple-400" />
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-4 py-3.5 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all bg-white/50"
+                  placeholder="••••••••"
+                  required={!isLogin}
+                />
+              </div>
+            </div>
+          )}
+
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-xl font-bold text-lg hover:shadow-xl transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Sign In
+            {loading ? 'Please wait...' : isLogin ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-purple-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-4 bg-white/80 text-gray-500 font-medium">Or continue with</span>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <FaGoogle className="text-red-500" />
-              <span className="text-sm font-medium">Google</span>
+          <div className="mt-6 grid grid-cols-2 gap-4">
+            <button className="flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all hover:shadow-lg transform hover:scale-105">
+              <FaGoogle className="text-red-500" size={20} />
+              <span className="text-sm font-semibold">Google</span>
             </button>
-            <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <FaApple className="text-gray-900" />
-              <span className="text-sm font-medium">Apple</span>
+            <button className="flex items-center justify-center gap-2 px-4 py-3.5 border-2 border-purple-200 rounded-xl hover:bg-purple-50 transition-all hover:shadow-lg transform hover:scale-105">
+              <FaApple className="text-gray-900" size={20} />
+              <span className="text-sm font-semibold">Apple</span>
             </button>
           </div>
         </div>
 
-        <p className="mt-8 text-center text-sm text-gray-600">
-          Don't have an account?{' '}
-          <a href="#" className="text-blue-600 hover:text-blue-700 font-medium">
-            Sign up
-          </a>
-        </p>
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => {
+              setIsLogin(!isLogin)
+              setError('')
+              setFormData({ email: '', password: '', displayName: '', confirmPassword: '' })
+            }}
+            className="text-purple-600 hover:text-purple-700 font-semibold text-sm"
+          >
+            {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+          </button>
+        </div>
       </div>
     </div>
   )
